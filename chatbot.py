@@ -23,19 +23,53 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 # PINECONE_API_KEY is used by the execute_queries tool internally
 
 # Database schema information to help the LLM generate correct SQL queries.
-# Based on tools/search_tool.py examples and comments.
 DB_SCHEMA_INFO = """
 The SQL database is 'data/inventory.db'.
-It contains a table named 'cars' with the following columns:
-  - id TEXT PRIMARY KEY: The unique identifier for a car.
-  - make TEXT: The manufacturer of the car (e.g., 'Toyota', 'Honda').
-  - model TEXT: The model name of the car (e.g., 'Camry', 'CRV').
-  - year INTEGER: The manufacturing year of the car.
-  - type TEXT: The type of car (e.g., 'Sedan', 'SUV').
-  - description TEXT: A textual description of the car.
+It contains two main tables: 'products' and 'parts'.
 
-When 'use_pinecone' is true for the tool, your SQL query should try to select the 'id' column,
-as these IDs can be used to filter the Pinecone semantic search.
+Table: products
+Columns:
+  - sku TEXT: Stock Keeping Unit, a unique identifier for the product.
+  - parent_sku TEXT: The SKU of the parent product if this is a variant or related item.
+  - date_created TEXT: The date and time when the product record was created (e.g., "YYYY-MM-DDTHH:MM:SS+00:00").
+  - view_count INTEGER: Number of times the product page has been viewed.
+  - total_sold INTEGER: Total number of units of this product that have been sold.
+  - price_range TEXT: A textual representation of the product's price range (e.g., "$30 - $100").
+  - id TEXT PRIMARY KEY: Unique identifier for the product record in this table.
+  - title TEXT: The name or title of the product.
+  - description TEXT: Detailed textual description of the product.
+  - link TEXT: URL link to the product's page on the e-commerce site.
+  - image_link TEXT: URL link to the main image of the product.
+  - price INTEGER (in cents): The price of the product, stored in cents (e.g., 3995 represents $39.95).
+  - availability TEXT: Stock availability status of the product (e.g., "in stock", "out of stock", "preorder").
+  - brand TEXT: The brand or manufacturer of the product.
+  - gtin TEXT: Global Trade Item Number (e.g., UPC, EAN) for the product.
+  - item_group_id TEXT: An identifier used to group related products or link to associated parts.
+  - mpn TEXT: Manufacturer Part Number for the product.
+  - shipping_weight INTEGER (in lb): Weight of the product for shipping purposes, stored as an integer representing pounds. (e.g. if weight is 2.5 lbs, this might be stored as 2 or 3, or require specific interpretation).
+  - product_category TEXT: The category the product belongs to (e.g., "RC Cars", "Batteries", "Traxxas").
+
+Table: parts
+Columns:
+  - id TEXT PRIMARY KEY: Unique identifier for the part record in this table.
+  - item_group_id TEXT: An identifier used to group related parts or link to associated products (often matches products.item_group_id).
+  - sku TEXT: Stock Keeping Unit for the specific part.
+  - part_category TEXT: The category of the part (e.g., "Body & Accessories", "Suspension").
+  - part_description TEXT: Detailed textual description of the part.
+  - part_parentsku_compatibility TEXT: SKU(s) of the parent product(s) this part is compatible with.
+  - part_product_group_code TEXT: A specific code for the product group this part belongs to (e.g., "ALUMINUM", "PLASTIC").
+  - part_type TEXT: The type of part (e.g., "Upgrade Part", "Standard Replacement", "Optional Part").
+
+Relationship:
+- `products.id` can be used to link to `parts.id` for related items.
+- `products.sku` can be used to link to `parts.sku` for related items.
+
+The parts table contains the part information for the products. And in products table, there are many parts that are related to the product, not also whole cars.
+Each part product in parts table has part_parentsku_compatibility column that contains the parent sku of the product that the part is compatible with.
+So when we use this tool, we can join the products and parts tables on the id column.
+
+When 'use_pinecone' is true for the tool, your SQL query should try to select the 'id' column from the relevant table (usually 'products.id'),
+as these IDs can be used to filter the Pinecone semantic search if applicable.
 """
 
 def create_chatbot_agent_executor():
@@ -51,7 +85,7 @@ def create_chatbot_agent_executor():
     tools = [execute_queries]
 
     prompt = ChatPromptTemplate.from_messages([
-        ("system", f"""You are a specialized assistant for answering questions about cars.
+        ("system", f"""You are a specialized assistant for answering questions about cars, RC car parts and products.
 You have access to a powerful tool called "sql-pinecone-query-executor" that can query a SQL database and a Pinecone vector store.
 
 Tool Input Schema:
@@ -64,11 +98,11 @@ The tool takes the following arguments:
 
 Your Task:
 1.  Analyze the user's question.
-2.  Decide if SQL, or both are needed.
+2.  Decide if SQL, Pinecone, or both are needed.
 3.  Construct the appropriate `sql_query`, `pinecone_query`, and `use_pinecone` arguments for the "sql-pinecone-query-executor" tool.
-4.  If `use_pinecone` is true, the `sql_query` should ideally select 'id's to help filter the Pinecone search. If no specific IDs are relevant from SQL for a Pinecone search, Pinecone will search without ID filters.
-5.  If the question is very general and seems best answered by semantic search without prior SQL filtering, you can provide an empty or minimal SQL query (e.g., "SELECT id FROM cars LIMIT 0") and set `use_pinecone` to true with a relevant `pinecone_query`.
-6.  If the question can be answered directly without using the tool (e.g., a simple greeting), do so.Don't use the tool for this.
+4.  If `use_pinecone` is true, the `sql_query` should ideally select 'id's (e.g. from products.id or parts.id) to help filter the Pinecone search. If no specific IDs are relevant from SQL for a Pinecone search, Pinecone will search without ID filters.
+5.  If the question is very general and seems best answered by semantic search without prior SQL filtering, you can provide an empty or minimal SQL query (e.g., "SELECT id FROM products LIMIT 0") and set `use_pinecone` to true with a relevant `pinecone_query`.
+6.  If the question can be answered directly without using the tool (e.g., a simple greeting), do so.
 """),
         MessagesPlaceholder(variable_name="chat_history"),
         ("human", "{input}"),
@@ -105,7 +139,7 @@ def run_chatbot():
                 "chat_history": chat_history
             })
             ai_response = response.get("output", "Sorry, I couldn't process that request.")
-            print(f"Chatbot: {ai_response}")
+            # print(f"Chatbot: {ai_response}")
 
             chat_history.append(HumanMessage(content=user_input))
             chat_history.append(AIMessage(content=ai_response))

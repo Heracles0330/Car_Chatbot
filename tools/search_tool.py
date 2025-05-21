@@ -28,7 +28,7 @@ def get_embedding(text, model=OPENAI_EMBEDDING_MODEL):
 
 # 1. Define the Input Schema
 class QueryExecutorInput(BaseModel):
-    sql_query: str = Field(description="The SQL query to execute based on the database schema to answer the user's question.Always select the id information from the database.")
+    sql_query: str = Field(description="The SQL query to execute based on the database schema to answer the user's question.Always select the id information in addition to the other information from the database.")
     pinecone_query: str = Field(description="The natural language query for Pinecone semantic search. This is used when the SQL query alone is insufficient to fully answer the user's question. The semantic search runs after the SQL query is executed because the SQL query first finds the id information of the product for the semantic search. This can be an empty string if use_pinecone is false.")
     use_pinecone: bool = Field(description="A boolean flag. Set to true if the user's question cannot be completely answered using only the SQL query and database schema, requiring an additional semantic search with Pinecone. Otherwise, set to false.")
 

@@ -4,7 +4,6 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain.agents import create_openai_tools_agent, AgentExecutor
-
 # Attempt to import the tool.
 # This assumes 'tools/search_tool.py' exists and 'tools' is a package
 # or the script is run from the project root directory.
@@ -77,7 +76,7 @@ def create_chatbot_agent_executor():
         print("Cannot create agent executor because 'execute_queries' tool failed to import.")
         return None
 
-    llm = ChatOpenAI(model="gpt-4o", temperature=0, openai_api_key=OPENAI_API_KEY)
+    llm = ChatOpenAI(model="gpt-4o", temperature=0, openai_api_key=OPENAI_API_KEY,streaming=True)
 
     # The 'execute_queries' tool is already decorated with @tool and has an args_schema
     # The agent will use its name "sql-pinecone-query-executor"
@@ -107,7 +106,9 @@ Your Task:
 
 **IMPORTANT**:
 Always show the product images.
-Finally, you should always return the answer to the user's question in a markdown table format for streamlit.
+And there are so many kinds of products such as cars, airplanes, boats, etc. Even the parts of the vehicles. So search the correct type of product for the user query using their name and before answer the user query. 
+After searching, just check the correct type of searched products if it is not the part of the product.
+For example, if the user query is about the parts of the car, you should search the parts of the car, not the attachments or parts of the cars such as fuel or wheels.
 """),
         MessagesPlaceholder(variable_name="chat_history"),
         ("human", "{input}"),
@@ -115,7 +116,7 @@ Finally, you should always return the answer to the user's question in a markdow
     ])
 
     agent = create_openai_tools_agent(llm, tools, prompt)
-    agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True, handle_parsing_errors=True)
+    agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True, handle_parsing_errors=True,max_iterations=3)
     return agent_executor
 
 def run_chatbot():

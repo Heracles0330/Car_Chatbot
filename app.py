@@ -1,5 +1,21 @@
 import streamlit as st
 from langchain_core.messages import HumanMessage, AIMessage
+from langchain.callbacks.base import BaseCallbackHandler
+
+class StreamlitCallbackHandler(BaseCallbackHandler):
+    def __init__(self, container):
+        self.container = container
+        self.tokens = []
+
+    def on_llm_end(self, *args, **kwargs):
+        # Optional: Handle when the LLM streaming is complete
+        self.container.markdown(''.join(self.tokens))
+
+    def on_llm_new_token(self, token: str, **kwargs) -> None:
+        self.tokens.append(token)
+        # Display live updating text
+        self.container.markdown(''.join(self.tokens) + "▌")  # The ▌ is a cursor effect
+
 
 # Attempt to import the agent executor creation function from chatbot.py
 try:
@@ -13,7 +29,19 @@ except ImportError as e:
 
 # Page Configuration: Set to wide layout first
 st.set_page_config(layout="wide", page_title="RC Parts Pro Chatbot")
-
+st.markdown("""
+    <style>
+     img {
+        display: block;
+        margin: 10px auto;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        width: 300px;
+        height: auto !important;
+        object-fit: contain;
+    }
+    </style>
+""", unsafe_allow_html=True)
 # --- Sidebar Configuration ---
 with st.sidebar:
     # Replace "assets/rc_logo.png" with the actual path to your company's logo
@@ -79,22 +107,30 @@ if user_query:
 
         with st.chat_message("AI"):
             with st.spinner("🔍 Thinking & Searching..."):
-                
-                stream = st.session_state.agent_executor.stream({
-                    "input": user_query,
-                    "chat_history": st.session_state.chat_history[:-1]
-                })
+                output_container = st.empty()
+                handler = StreamlitCallbackHandler(output_container)
+                stream = st.session_state.agent_executor.stream(
+                    {
+                        "input": user_query,
+                        "chat_history": st.session_state.chat_history[:-1]
+                    },
+                    {"callbacks": [handler]}
+                )
+                full_response = ""
                 for chunk in stream:
-                    if "output" in chunk and isinstance(chunk["output"], str) and chunk["output"]:
-                        st.write(chunk["output"])
-                        st.session_state.current_ai_full_response_for_history += chunk["output"]
-                    
+                    if "output" in chunk and isinstance(chunk["output"], str):
+                        full_response += chunk["output"]
+                # Wrap the final response in the assistant-message div
+                st.session_state.current_ai_full_response_for_history =full_response
             
         
         st.session_state.chat_history.append(AIMessage(content=st.session_state.current_ai_full_response_for_history))
+
 
         if len(st.session_state.chat_history) > 20:
             st.session_state.chat_history = st.session_state.chat_history[-20:]
 
 if not st.session_state.agent_executor and (OPENAI_API_KEY and execute_queries):
     st.error("Chatbot initialization failed. Please check terminal output or error messages for details.")
+
+

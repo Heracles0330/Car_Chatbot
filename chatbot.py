@@ -47,7 +47,6 @@ Columns:
   - item_group_id TEXT: An identifier used to group related products or link to associated parts.
   - mpn TEXT: Manufacturer Part Number for the product.
   - shipping_weight_as_int INTEGER (in lb): Weight of the product for shipping purposes, stored as an integer representing pounds. (e.g. if weight is 2.5 lbs, this might be stored as 2 or 3, or require specific interpretation).
-  - product_category TEXT: The category the product belongs to (e.g., "RC Cars", "Batteries", "Traxxas").
 
 Table: parts
 Columns:
@@ -104,6 +103,11 @@ Your Task:
 5.  If the question is very general and seems best answered by semantic search without prior SQL filtering, you can provide an empty or minimal SQL query (e.g., "SELECT id FROM products LIMIT 0") and set `use_pinecone` to true with a relevant `pinecone_query`.
 6.  If the question can be answered directly without using the tool (e.g., a simple greeting), do so.
 7.  If the sql search has failed for 3 times, try only using pinecone search.
+
+
+**IMPORTANT**:
+Always show the product images.
+Finally, you should always return the answer to the user's question in a markdown table format for streamlit.
 """),
         MessagesPlaceholder(variable_name="chat_history"),
         ("human", "{input}"),

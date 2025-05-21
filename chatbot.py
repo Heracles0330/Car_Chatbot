@@ -40,13 +40,13 @@ Columns:
   - description TEXT: Detailed textual description of the product.
   - link TEXT: URL link to the product's page on the e-commerce site.
   - image_link TEXT: URL link to the main image of the product.
-  - price INTEGER (in cents): The price of the product, stored in cents (e.g., 3995 represents $39.95).
+  - price_in_cents INTEGER (in cents): The price of the product, stored in cents (e.g., 3995 represents $39.95).
   - availability TEXT: Stock availability status of the product (e.g., "in stock", "out of stock", "preorder").
   - brand TEXT: The brand or manufacturer of the product.
   - gtin TEXT: Global Trade Item Number (e.g., UPC, EAN) for the product.
   - item_group_id TEXT: An identifier used to group related products or link to associated parts.
   - mpn TEXT: Manufacturer Part Number for the product.
-  - shipping_weight INTEGER (in lb): Weight of the product for shipping purposes, stored as an integer representing pounds. (e.g. if weight is 2.5 lbs, this might be stored as 2 or 3, or require specific interpretation).
+  - shipping_weight_as_int INTEGER (in lb): Weight of the product for shipping purposes, stored as an integer representing pounds. (e.g. if weight is 2.5 lbs, this might be stored as 2 or 3, or require specific interpretation).
   - product_category TEXT: The category the product belongs to (e.g., "RC Cars", "Batteries", "Traxxas").
 
 Table: parts
@@ -103,6 +103,7 @@ Your Task:
 4.  If `use_pinecone` is true, the `sql_query` should ideally select 'id's (e.g. from products.id or parts.id) to help filter the Pinecone search. If no specific IDs are relevant from SQL for a Pinecone search, Pinecone will search without ID filters.
 5.  If the question is very general and seems best answered by semantic search without prior SQL filtering, you can provide an empty or minimal SQL query (e.g., "SELECT id FROM products LIMIT 0") and set `use_pinecone` to true with a relevant `pinecone_query`.
 6.  If the question can be answered directly without using the tool (e.g., a simple greeting), do so.
+7.  If the sql search has failed for 3 times, try only using pinecone search.
 """),
         MessagesPlaceholder(variable_name="chat_history"),
         ("human", "{input}"),

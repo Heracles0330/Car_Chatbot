@@ -103,7 +103,7 @@ def execute_queries(sql_query: str, pinecone_query: str, use_pinecone: bool) -> 
     try:
         sql_query_results = execute_sql_query(sql_query)
         if sql_query_results and isinstance(sql_query_results, list) and "error" not in sql_query_results[0]:
-            results["sql_results"] = {"status": "success", "data": sql_query_results}
+            results["sql_results"] = {"status": "success", "data": sql_query_results[:10]}
             # Extract IDs if present - assuming the ID column is named 'id'
             # The LLM should be instructed to ensure the SQL query selects the 'id' column
             # if use_pinecone is True.

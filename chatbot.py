@@ -9,6 +9,7 @@ from langchain.agents import create_openai_tools_agent, AgentExecutor
 # or the script is run from the project root directory.
 try:
     from tools.search_tool import execute_queries
+    from tools.get_order import get_order
 except ImportError as e:
     print(f"Error importing 'execute_queries' from 'tools.search_tool': {e}")
     print("Please ensure 'tools/search_tool.py' exists and your PYTHONPATH is set up correctly,")
@@ -80,7 +81,7 @@ def create_chatbot_agent_executor():
 
     # The 'execute_queries' tool is already decorated with @tool and has an args_schema
     # The agent will use its name "sql-pinecone-query-executor"
-    tools = [execute_queries]
+    tools = [execute_queries, get_order]
 
     prompt = ChatPromptTemplate.from_messages([
         ("system", f"""You are a specialized assistant for answering questions about cars, RC car parts and products.
@@ -103,6 +104,21 @@ Your Task:
 6.  If the question can be answered directly without using the tool (e.g., a simple greeting), do so.
 7.  If the sql search has failed for 3 times, try only using pinecone search.
 
+**You also have access to a tool called "get_order".
+
+Tool: get_order
+Purpose: This tool allows you to retrieve order information for a user, such as order status, tracking information, or order details.
+
+How to use:
+- Use this tool when the user asks about their order status, tracking, delivery, or any information related to a specific order.
+- You will need to ask the user for their order number or any required identification if not already provided.
+- If the user asks about an order but does not provide an order number, politely request it before using the tool.
+
+Example user queries that should trigger this tool:
+- "What’s the status of my order #12345?"
+- user: "What about my order?" 
+    assistant: "Sure, I can help with that. Could you please provide me with the order number  so I can look it up for you?"
+Always ensure you have the necessary information before calling this tool.**
 
 **IMPORTANT**:
 Always show the product images.

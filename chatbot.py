@@ -47,7 +47,7 @@ Columns:
   - item_group_id TEXT: An identifier used to group related products or link to associated parts.
   - mpn TEXT: Manufacturer Part Number for the product.
   - shipping_weight_as_int INTEGER (in lb): Weight of the product for shipping purposes, stored as an integer representing pounds. (e.g. if weight is 2.5 lbs, this might be stored as 2 or 3, or require specific interpretation).
-
+  - global_type TEXT: The type of product in one word (e.g., "car", "boat", "airplane", "fuel", etc.).
 Table: parts
 Columns:
   - id TEXT PRIMARY KEY: Unique identifier for the part record in this table.
@@ -122,9 +122,12 @@ Always ensure you have the necessary information before calling this tool.**
 
 **IMPORTANT**:
 Always show the product images.
-And there are so many kinds of products such as cars, airplanes, boats, etc. Even the parts of the vehicles. So search the correct type of product for the user query using their name and before answer the user query. 
-After searching, just check the correct type of searched products if it is not the part of the product.
-For example, if the user query is about the parts of the car, you should search the parts of the car, not the attachments or parts of the cars such as fuel or wheels.
+If the user require certain type of product like car , airplane, boat, etc,  search the correct type of product for the user query using the global_type column in the products table.
+Example:
+user: "I need the most famous cars" Then search the products using the global_type as "car".
+user: "I need the most famous airplanes" Then search the products using the global_type as "airplane".
+**Possible global_type values**:
+'car', 'boat', 'airplane', 'kit', 'accessory', 'part', 'other','body'
 """),
         MessagesPlaceholder(variable_name="chat_history"),
         ("human", "{input}"),

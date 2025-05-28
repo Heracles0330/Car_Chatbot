@@ -40,6 +40,9 @@ st.markdown("""
         height: auto !important;
         object-fit: contain;
     }
+     iframe{
+        display: none;
+     }
     </style>
 """, unsafe_allow_html=True)
 # --- Sidebar Configuration ---
@@ -97,6 +100,7 @@ for message in st.session_state.chat_history:
 user_query = st.chat_input("Ask your question about RC parts or products...")
 
 if user_query:
+    
     st.session_state.current_ai_full_response_for_history = ""
     if not st.session_state.agent_executor:
         st.error("Chatbot is not initialized. Cannot process query.")
@@ -104,18 +108,11 @@ if user_query:
         st.session_state.chat_history.append(HumanMessage(content=user_query))
         with st.chat_message("Human"):
             st.markdown(user_query)
-            st.markdown("""
-            <script>
             
-                window.scrollTo({
-                    top: document.body.scrollHeight,
-                    behavior: 'smooth'
-                });
-            </script>
-            """, unsafe_allow_html=True)
 
         with st.chat_message("AI"):
             with st.spinner("🔍 Thinking & Searching..."):
+                
                 output_container = st.empty()
                 handler = StreamlitCallbackHandler(output_container)
                 stream = st.session_state.agent_executor.stream(
@@ -126,6 +123,7 @@ if user_query:
                     {"callbacks": [handler]}
                 )
                 full_response = ""
+                
                 for chunk in stream:
                     if "output" in chunk and isinstance(chunk["output"], str):
                         full_response += chunk["output"]

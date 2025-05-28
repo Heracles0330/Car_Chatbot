@@ -42,43 +42,6 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-
-# Add auto-scroll JavaScript function
-def add_auto_scroll_js():
-    st.markdown("""
-    <script>
-    function scrollToBottom() {
-        window.scrollTo({
-            top: document.body.scrollHeight,
-            behavior: 'smooth'
-        });
-    }
-    
-    // Auto-scroll when new content is added
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                // Check if the added node contains chat content
-                for (let node of mutation.addedNodes) {
-                    if (node.nodeType === Node.ELEMENT_NODE && 
-                        (node.querySelector('[data-testid="stChatMessage"]') || 
-                         node.getAttribute('data-testid') === 'stChatMessage')) {
-                        setTimeout(scrollToBottom, 100);
-                        break;
-                    }
-                }
-            }
-        });
-    });
-    
-    // Start observing
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
-    </script>
-    """, unsafe_allow_html=True)
-
 # --- Sidebar Configuration ---
 with st.sidebar:
     # Replace "assets/rc_logo.png" with the actual path to your company's logo
@@ -101,9 +64,6 @@ with st.sidebar:
 # --- Main Chat Interface ---
 st.title("Chat with RC Parts Pro") # Main panel title
 st.divider()
-
-# Add the auto-scroll JavaScript
-add_auto_scroll_js()
 
 # Initialize or get the agent executor from session state
 if "agent_executor" not in st.session_state:
@@ -144,21 +104,17 @@ if user_query:
         st.session_state.chat_history.append(HumanMessage(content=user_query))
         with st.chat_message("Human"):
             st.markdown(user_query)
-
-        with st.chat_message("AI"):
-            # Trigger auto-scroll when AI response starts
-            st.markdown('<div id="ai-response-start"></div>', unsafe_allow_html=True)
             st.markdown("""
             <script>
-            setTimeout(function() {
+            
                 window.scrollTo({
                     top: document.body.scrollHeight,
                     behavior: 'smooth'
                 });
-            }, 100);
             </script>
             """, unsafe_allow_html=True)
-            
+
+        with st.chat_message("AI"):
             with st.spinner("🔍 Thinking & Searching..."):
                 output_container = st.empty()
                 handler = StreamlitCallbackHandler(output_container)

@@ -105,7 +105,7 @@ Your Task:
 7.  If the sql search has failed for 2 times, try only using pinecone search.
 8.  The popularity criteria is the total_sold column in the products table.
 9.  if the third search is not successful, then answer that there is no product that matches the user's query.
-10. Search correctly for the product that the user is asking for. EX: user: "What RC vehicles do you have under $200?" Then search the products using the global_type as "car" and name must contain "RC" and price must be less than 200.
+10. If the user asks for the RC vehicles, then search the products using the global_type as "car" and name must contain "RC".
 
 **You also have access to a tool called "get_order".
 

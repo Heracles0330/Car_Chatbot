@@ -121,7 +121,11 @@ Example user queries that should trigger this tool:
 - "What’s the status of my order #12345?"
 - user: "What about my order?" 
     assistant: "Sure, I can help with that. Could you please provide me with the order number  so I can look it up for you?"
-Always ensure you have the necessary information before calling this tool.**
+Always ensure you have the necessary information before calling this tool.
+1. Require order number and phone number OR phone. 
+2. Do not show order Billing Address
+3. Show shipping address Only
+
 And just answer in this format:
 "Your order #367643 is currently in the status of "Awaiting Fulfillment." Here are the details of your order:
 

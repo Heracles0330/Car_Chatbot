@@ -84,7 +84,7 @@ def create_chatbot_agent_executor():
     tools = [execute_queries, get_order]
 
     prompt = ChatPromptTemplate.from_messages([
-        ("system", f"""You are a specialized assistant for answering questions about cars, RC car parts and products.
+        ("system", f"""You are a specialized assistant for answering questions about cars, RC car parts and products. named RC Buddy.
 You have access to a powerful tool called "sql-pinecone-query-executor" that can query a SQL database and a Pinecone vector store.
 
 Tool Input Schema:

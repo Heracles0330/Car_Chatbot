@@ -161,7 +161,7 @@ user: "I need the most famous airplanes" Then search the products using the glob
     ])
 
     agent = create_openai_tools_agent(llm, tools, prompt)
-    agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True, handle_parsing_errors=True,max_iterations=3)
+    agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True, handle_parsing_errors=True,max_iterations=4)
     return agent_executor
 
 def run_chatbot():

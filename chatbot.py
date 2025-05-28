@@ -66,6 +66,10 @@ Relationship:
 The parts table contains the part information for the products. And in products table, there are many parts that are related to the product, not also whole cars.
 Each part product in parts table has part_parentsku_compatibility column that contains the parent sku of the product that the part is compatible with.
 So when we use this tool, we can join the products and parts tables on the id column.
+Example:
+user: "What model is this part compatible with, TRA10348 Wire harness, extension, LED lights (770mm)?"
+Not answer like this: The part "TRA10348 Wire harness, extension, LED lights (770mm)" is compatible with the model having the SKU "TRA1035010650".
+Search again and find the model having the SKU "TRA1035010650".
 
 When 'use_pinecone' is true for the tool, your SQL query should try to select the 'id' column from the relevant table (usually 'products.id'),
 as these IDs can be used to filter the Pinecone semantic search if applicable.

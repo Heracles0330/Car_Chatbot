@@ -33,12 +33,10 @@ st.markdown("""
     <style>
      img {
         display: block;
-        margin: 10px auto;
         border-radius: 8px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         width: 300px;
         height: auto !important;
-        object-fit: contain;
     }
      iframe{
         display: none;
